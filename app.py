@@ -306,6 +306,25 @@ def job_status(job_id):
     </html>
     '''
 
+@app.route('/cancel/<job_id>', methods=['POST'])
+def cancel_job(job_id):
+    if job_id in jobs:
+        jobs[job_id]['status'] = 'cancelled'
+        return jsonify({"success": True, "message": f"Job {job_id} cancelled"})
+    return jsonify({"success": False, "message": "Job not found"}), 404
+
+@app.route('/delete/<job_id>', methods=['POST'])
+def delete_job(job_id):
+    if job_id in jobs:
+        del jobs[job_id]
+        return jsonify({"success": True, "message": f"Job {job_id} deleted"})
+    return jsonify({"success": False, "message": "Job not found"}), 404
+
+@app.route('/clear_all', methods=['POST'])
+def clear_all_jobs():
+    jobs.clear()
+    return jsonify({"success": True, "message": "All jobs cleared"})
+
 @app.route('/jobs')
 def all_jobs():
     job_list = sorted(jobs.values(), key=lambda x: x['created_at'], reverse=True)
@@ -316,6 +335,9 @@ def all_jobs():
         <td><span class="status-{job['status']}">{job['status'].upper()}</span></td>
         <td>{job['processed']:,} / {job['total']:,}</td>
         <td>{job['progress']}%</td>
+        <td>
+            <button onclick="deleteJob('{job['id']}')" class="btn-delete">🗑️ Delete</button>
+        </td>
     </tr>
     ''' for job in job_list])
     
